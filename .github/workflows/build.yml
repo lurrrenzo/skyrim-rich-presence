@@ -1,0 +1,41 @@
+name: Build plugin
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-2022
+    env:
+      VCPKG_ROOT: C:\vcpkg-full
+      CXXFLAGS: /WX-
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Get vcpkg
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
+          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+
+      - name: Configure
+        run: cmake --preset FLATRIM
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: List built DLLs
+        shell: pwsh
+        run: Get-ChildItem -Path build,package -Recurse -Filter *.dll -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: |
+            build/**/*.dll
+            package/**
+          if-no-files-found: warn
