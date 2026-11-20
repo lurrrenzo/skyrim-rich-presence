@@ -22,6 +22,10 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
 
+      - name: Create missing ports folder
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path cmake/ports
+
       - name: Configure
         run: cmake --preset FLATRIM
 
